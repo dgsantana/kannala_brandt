@@ -6,6 +6,21 @@
 #include <sstream>
 JudgeKB::JudgeKB()
 {
+	m_width = 0;
+	m_height = 0;
+	m_k2 = 0;
+	m_k3 = 0;
+	m_k4 = 0;
+	m_k5 = 0;
+	m_mu = 0;
+	m_mv = 0;
+	m_u0 = 0;
+	m_v0 = 0;
+
+	m_inv_K13 = 0;
+	m_inv_K22 = 0;
+	m_inv_K23 = 0;
+	m_inv_K11 = 0;
 }
 
 JudgeKB::~JudgeKB()
@@ -21,7 +36,7 @@ int JudgeKB::setk(double k2, double k3, double k4, double k5)
 	return 0;
 }
 
-int JudgeKB::setk(char* path)
+int JudgeKB::setk(char *path)
 {
 	std::ifstream inFile;
 	std::cout << path << std::endl;
@@ -37,23 +52,23 @@ int JudgeKB::setk(char* path)
 	{
 		inFile.getline(cline, 512);
 		line = std::string(cline);
-		
+
 		position = line.find("image_width:");
 		if (position != line.npos)
 		{
 			position = line.find(":");
-			std::istringstream ins(line.substr(position+1, line.size() - position));
+			std::istringstream ins(line.substr(position + 1, line.size() - position));
 			ins >> m_width;
 		}
-		
+
 		position = line.find("image_height:");
 		if (position != line.npos)
 		{
 			position = line.find(":");
-			std::istringstream ins(line.substr(position +1, line.size() - position));
+			std::istringstream ins(line.substr(position + 1, line.size() - position));
 			ins >> m_height;
 		}
-		
+
 		position = line.find("k2:");
 		if (position != line.npos)
 		{
@@ -63,21 +78,21 @@ int JudgeKB::setk(char* path)
 		position = line.find("k3:");
 		if (position != line.npos)
 		{
-			std::istringstream ins(line.substr(position+3, line.size() - position));
+			std::istringstream ins(line.substr(position + 3, line.size() - position));
 			ins >> m_k3;
 		}
 
 		position = line.find("k4:");
 		if (position != line.npos)
 		{
-			std::istringstream ins(line.substr(position+3, line.size() - position));
+			std::istringstream ins(line.substr(position + 3, line.size() - position));
 			ins >> m_k4;
 		}
 
 		position = line.find("k5:");
 		if (position != line.npos)
 		{
-			std::istringstream ins(line.substr(position+3, line.size() - position));
+			std::istringstream ins(line.substr(position + 3, line.size() - position));
 			ins >> m_k5;
 		}
 
@@ -85,37 +100,34 @@ int JudgeKB::setk(char* path)
 		if (position != line.npos)
 		{
 			std::cout << line << std::endl;
-			std::istringstream ins(line.substr(position+3, line.size() - position));
+			std::istringstream ins(line.substr(position + 3, line.size() - position));
 			ins >> m_mu;
 		}
 
 		position = line.find("mv:");
 		if (position != line.npos)
 		{
-			std::istringstream ins(line.substr(position+3, line.size() - position));
+			std::istringstream ins(line.substr(position + 3, line.size() - position));
 			ins >> m_mv;
 		}
 
 		position = line.find("u0:");
 		if (position != line.npos)
 		{
-			std::istringstream ins(line.substr(position+3, line.size() - position));
+			std::istringstream ins(line.substr(position + 3, line.size() - position));
 			ins >> m_u0;
 		}
 
 		position = line.find("v0:");
 		if (position != line.npos)
 		{
-			std::istringstream ins(line.substr(position+3, line.size() - position));
+			std::istringstream ins(line.substr(position + 3, line.size() - position));
 			ins >> m_v0;
 		}
-
-
-
 	}
 	std::cout << m_width << "\t" << m_height << std::endl;
 	std::cout << m_k2 << "\t" << m_k3 << "\t" << m_k4 << "\t" << m_k5 << std::endl;
-	std::cout << m_mu <<"\t" <<m_mv << "\t" << m_u0 << "\t" << m_v0 << std::endl;
+	std::cout << m_mu << "\t" << m_mv << "\t" << m_u0 << "\t" << m_v0 << std::endl;
 	jdConvergence();
 	return 0;
 }
@@ -127,9 +139,7 @@ void JudgeKB::setInv()
 	m_inv_K13 = -m_u0 / m_mu;
 	m_inv_K22 = 1.0 / m_mv;
 	m_inv_K23 = -m_v0 / m_mv;
-
 }
-
 
 bool JudgeKB::jdThetaRegion()
 {
@@ -138,11 +148,11 @@ bool JudgeKB::jdThetaRegion()
 
 bool JudgeKB::jdCoffRegion()
 {
-	double k2 = abs(m_k2);
-	double k3 = abs(m_k3);
-	double k4 = abs(m_k4);
-	double k5 = abs(m_k5);
-	
+	double k2 = std::abs(m_k2);
+	double k3 = std::abs(m_k3);
+	double k4 = std::abs(m_k4);
+	double k5 = std::abs(m_k5);
+
 	double min_k23 = 0;
 	double max_k45 = 0;
 
@@ -165,12 +175,12 @@ bool JudgeKB::jdConvergence()
 		double px = 0, py = 0;
 		double x = m_inv_K11 * px + m_inv_K13;
 		double y = m_inv_K22 * py + m_inv_K23;
-		double r_min = sqrt(x*x + y * y);
+		double r_min = sqrt(x * x + y * y);
 		for (double i = 0; i < 1.57; i += 0.01)
 		{
-			for (double j = i+0.01; j < 1.31; j += 0.01)
+			for (double j = i + 0.01; j < 1.31; j += 0.01)
 			{
-				if (abs(fai(r_min,i)-fai(r_min,j))/abs(i-j)>=1)
+				if (std::abs(fai(r_min, i) - fai(r_min, j)) / std::abs(i - j) >= 1)
 				{
 					std::cout << i << "\t" << j << std::endl;
 					//return false;
@@ -183,7 +193,7 @@ bool JudgeKB::jdConvergence()
 		double px = m_width, py = m_height;
 		double x = m_inv_K11 * px + m_inv_K13;
 		double y = m_inv_K22 * py + m_inv_K23;
-		double r_max = sqrt(x*x + y * y);
+		double r_max = sqrt(x * x + y * y);
 	}
 	return true;
 }
@@ -193,7 +203,6 @@ bool JudgeKB::jdIteration()
 	return true;
 }
 
-
 double JudgeKB::fai_min(double x)
 {
 	return 0;
@@ -202,7 +211,6 @@ double JudgeKB::fai_min(double x)
 double JudgeKB::fai_max(double x)
 {
 	return 0;
-
 }
 
 double JudgeKB::fai(double px, double py, double theta)
@@ -210,7 +218,7 @@ double JudgeKB::fai(double px, double py, double theta)
 
 	double x = m_inv_K11 * px + m_inv_K13;
 	double y = m_inv_K22 * py + m_inv_K23;
-	double r = sqrt(x*x + y * y);
+	double r = sqrt(x * x + y * y);
 
 	double theta2 = theta * theta, theta3 = theta2 * theta, theta5 = theta3 * theta2, theta7 = theta5 * theta2, theta9 = theta7 * theta2;
 	theta = r - (m_k2 * theta3 + m_k3 * theta5 + m_k4 * theta7 + m_k5 * theta9);
