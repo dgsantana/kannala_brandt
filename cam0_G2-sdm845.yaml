@@ -1,0 +1,48 @@
+%YAML:1.0
+
+model_type: KANNALA_BRANDT
+camera_name: fisheye_cvmodule1
+image_width: 640
+image_height: 400
+
+projection_parameters:
+   k2: -0.007559153034274893
+   k3: -0.03988097753155787
+   k4: 0.2757687026574521
+   k5: -0.3308163241786686
+   mu: 291.89145890163667
+   mv: 291.7671887446135
+   u0: 319.72879083263877
+   v0: 199.83901646723515
+
+imu_image_t_offset: 4.6e+06
+
+# Extrinsic parameter between IMU and Camera
+extrinsicRotation: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [0.99992407,  0.01080919, 0.00591819, 
+          0.0108336, -0.99993288, -0.00410829, 
+          0.00587339,  0.0041721, -0.99997405]
+
+extrinsicTranslation: !!opencv-matrix
+   rows: 3
+   cols: 1
+   dt: d
+   data: [-0.11026545, -0.00458863, -0.00287353]
+
+# stereo parameters from cam0 to cam1
+Stereo_R: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [0.99994382,  0.00206126,  0.0103977, 
+          -0.00205621,  0.99999776, -0.0004971, 
+          -0.0103987,  0.0004757,  0.99994582]
+
+Stereo_T: !!opencv-matrix
+   rows: 3
+   cols: 1
+   dt: d
+   data: [-0.10610459, -0.00007534, 0.00035267]

@@ -1,0 +1,50 @@
+%YAML:1.0
+
+#calibrate-slamdata-March
+
+model_type: KANNALA_BRANDT
+camera_name: camera
+image_width: 640
+image_height: 400
+
+projection_parameters:
+   k2: -0.01847757657533866
+   k3: 0.0575172937703169
+   k4: -0.06496298696673658
+   k5: 0.02593645307703224
+   mu: 290.03672785595984
+   mv: 289.70361075706387
+   u0: 323.1621621450474
+   v0: 197.5696586534049
+
+imu_image_t_offset: -4.7e+06
+
+#Rotation from camera frame to imu frame, imu^R_cam
+extrinsicRotation: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [ 0.9999418,  -0.01065044, -0.0017247,
+          -0.01066446, -0.99990837, -0.00833845,
+          -0.00163574,  0.00835635, -0.99996375]
+#Translation from camera frame to imu frame, imu^T_cam
+extrinsicTranslation: !!opencv-matrix
+   rows: 3
+   cols: 1
+   dt: d
+   data: [0.07902386, -0.00331781, -0.00822275]
+
+# stereo parameters from cam0 to cam1
+Stereo_R: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [0.99962551, -0.02280012, -0.0151323,
+          0.02266901,  0.99970447, -0.00877993,
+          0.01532801,  0.00843361,  0.99984695]
+
+Stereo_T: !!opencv-matrix
+   rows: 3
+   cols: 1
+   dt: d
+   data: [0.08022602, 0.00083157, 0.00120572]
