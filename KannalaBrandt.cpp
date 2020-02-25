@@ -6,6 +6,9 @@
 #include <iostream>
 #include <sstream>
 #include <eigen3/Eigen/Dense>
+#ifdef USE_OpenCV
+#include <opencv2/opencv.hpp>
+#endif
 
 JudgeKB::JudgeKB()
 {
@@ -306,6 +309,10 @@ double JudgeKB::backprojectSymmetric(double r)
 }
 bool JudgeKB::jdIteration()
 {
+#ifdef USE_OpenCV
+
+	cv::Mat mask(m_height, m_width, CV_8UC1, cv::Scalar(255));
+#endif
 	MiniCircl cc;
 	int count = 0;
 	for (size_t px = 0; px < m_width; px++)
@@ -346,6 +353,10 @@ bool JudgeKB::jdIteration()
 			if (inter > 10 || theta > 1.57 || theta < 0)
 			{
 				;
+#ifdef USE_OpenCV
+
+				mask.at<uchar>(py, px) = 0;
+#endif
 			}
 			else
 			{
@@ -361,6 +372,10 @@ bool JudgeKB::jdIteration()
 			}
 		}
 	}
+
+#ifdef USE_OpenCV
+	cv::imwrite("mask.png", mask);
+#endif
 
 	if (count > 100)
 	{

@@ -1,4 +1,5 @@
 #include "judgeKB.h"
+#include <exception>
 
 class JudgeKB
 {
@@ -52,17 +53,24 @@ const char *kbGetVersion()
 
 KB_STATUS testKB(JudgeKB kb)
 {
-	if (kb.jdCoffRegion() == false)
+	try
 	{
-		return KB_CR;
+		if (kb.jdCoffRegion() == false)
+		{
+			return KB_CR;
+		}
+		if (kb.jdConvergence() == false)
+		{
+			return KB_CN;
+		}
+		if (kb.jdIteration() == false)
+		{
+			return KB_TH;
+		}
 	}
-	if (kb.jdConvergence() == false)
+	catch (const std::exception &e)
 	{
-		return KB_CN;
-	}
-	if (kb.jdIteration() == false)
-	{
-		return KB_TH;
+		return KB_ER;
 	}
 	return KB_OK;
 }
