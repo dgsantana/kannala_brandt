@@ -6,9 +6,6 @@
 #include <iostream>
 #include <sstream>
 #include <eigen3/Eigen/Dense>
-#ifdef USE_OpenCV
-#include <opencv2/opencv.hpp>
-#endif
 
 JudgeKB::JudgeKB()
 {
@@ -27,6 +24,12 @@ JudgeKB::JudgeKB()
 	m_inv_K22 = 0;
 	m_inv_K23 = 0;
 	m_inv_K11 = 0;
+
+	m_mask_radius = 500;
+	for (size_t i = 0; i < 64; i++)
+	{
+		m_devices_radius[i] = 0;
+	}
 }
 
 JudgeKB::~JudgeKB()
@@ -60,7 +63,7 @@ int JudgeKB::setParameters(int image_width,
 	return setInv();
 }
 
-int JudgeKB::setParameters(char *path)
+int JudgeKB::setParameters(const char *path)
 {
 	std::ifstream inFile;
 	// std::cout << path << std::endl;
@@ -165,6 +168,114 @@ int JudgeKB::setInv()
 	return 0;
 }
 
+int JudgeKB::readConfig(const char *path)
+{
+	std::ifstream inFile;
+	// std::cout << path << std::endl;
+	inFile.open(path);
+	if (!inFile.is_open())
+	{
+		return -1;
+	}
+	std::string line;
+	char cline[512];
+	std::string::size_type position;
+	while (!inFile.eof())
+	{
+		inFile.getline(cline, 512);
+		line = std::string(cline);
+
+		position = line.find("cvmodule:");
+		if (position != line.npos)
+		{
+			position = line.find(":");
+			std::istringstream ins(line.substr(position + 1, line.size() - position));
+			ins >> m_devices_radius[0];
+		}
+
+		position = line.find("cv2:");
+		if (position != line.npos)
+		{
+			position = line.find(":");
+			std::istringstream ins(line.substr(position + 1, line.size() - position));
+			ins >> m_devices_radius[1];
+		}
+
+		position = line.find("G2:");
+		if (position != line.npos)
+		{
+			position = line.find(":");
+			std::istringstream ins(line.substr(position + 1, line.size() - position));
+			ins >> m_devices_radius[2];
+		}
+
+		position = line.find("newG2:");
+		if (position != line.npos)
+		{
+			position = line.find(":");
+			std::istringstream ins(line.substr(position + 1, line.size() - position));
+			ins >> m_devices_radius[3];
+		}
+	}
+
+	return 0;
+}
+
+int JudgeKB::setDeviceType(int type)
+{
+	if (m_devices_radius[type] == 0)
+	{
+		return -1;
+	}
+
+	m_mask_radius = m_devices_radius[type];
+	return 0;
+}
+
+int JudgeKB::setMaskRadius(double radius)
+{
+	m_mask_radius = radius;
+	return 0;
+}
+
+int JudgeKB::saveMaskMap(const char *path)
+{
+	std::string s(path);
+	char p[512];
+	if (m_circle_radius == -1)
+	{
+		return -1;
+	}
+
+	if (path[s.length() - 1] == '/' || path[s.length() - 1] == '\\')
+	{
+		if (m_circle_radius == 0)
+		{
+			sprintf(p, "%smask_ok.png", path);
+		}
+		else
+			sprintf(p, "%smask_%0.3lf.png", path, m_circle_radius);
+	}
+	else
+	{
+		if (m_circle_radius == 0)
+		{
+			sprintf(p, "%s/mask_ok.png", path);
+		}
+		else
+			sprintf(p, "%s/mask_%0.3lf.png", path, m_circle_radius);
+	}
+
+#ifdef USE_OpenCV
+
+	cv::imwrite(p, m_mask_map);
+#else
+	std::ofstream ofile;
+	ofile.open(p);
+	ofile.close();
+#endif
+}
+
 bool JudgeKB::jdThetaRegion()
 {
 	return true;
@@ -172,6 +283,7 @@ bool JudgeKB::jdThetaRegion()
 
 bool JudgeKB::jdCoffRegion()
 {
+	m_circle_radius = -1;
 	double k2 = std::abs(m_k2);
 	double k3 = std::abs(m_k3);
 	double k4 = std::abs(m_k4);
@@ -309,6 +421,8 @@ double JudgeKB::backprojectSymmetric(double r)
 }
 bool JudgeKB::jdIteration()
 {
+	m_circle_radius = -1;
+
 #ifdef USE_OpenCV
 
 	cv::Mat mask(m_height, m_width, CV_8UC1, cv::Scalar(255));
@@ -374,27 +488,33 @@ bool JudgeKB::jdIteration()
 	}
 
 #ifdef USE_OpenCV
-	cv::imwrite("mask.png", mask);
+	// cv::imwrite("mask.png", mask);
+	m_mask_map = mask;
 #endif
 
 	if (count > 100)
 	{
 		double R = 0;
-		if (cc.getRedius(R) == 1 && R != -1)
+		if (cc.getRadius(R) == 1 && R != -1)
 		{
+			m_circle_radius = R;
 			double x = 0, y = 0;
 			cc.getCenter(x, y);
 			if (x < m_u0 * 1.5 && x > m_u0 * 0.5)
 			{
 				if (y < m_v0 * 1.5 && y > m_v0 * 0.5)
 				{
-					if (R < 300)
+					if (R < m_mask_radius)
 					{
 						return false;
 					}
 				}
 			}
 		}
+	}
+	else
+	{
+		m_circle_radius = 0.0;
 	}
 
 	return true;

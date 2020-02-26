@@ -1,6 +1,8 @@
 #include "judgeKB.h"
 #include <exception>
-
+#ifdef USE_OpenCV
+#include <opencv2/opencv.hpp>
+#endif
 class JudgeKB
 {
 public:
@@ -16,7 +18,9 @@ public:
 					  double mv,
 					  double u0,
 					  double v0);
-	int setParameters(char *path);
+	int setParameters(const char *path);
+	int setMaskRadius(double radius);
+	int saveMaskMap(const char *path);
 
 	bool jdThetaRegion();
 	bool jdCoffRegion();
@@ -40,18 +44,34 @@ private:
 	double m_inv_K23;
 	double m_inv_K11;
 
+	double m_mask_radius;
+	double m_circle_radius;
+	double m_devices_radius[64];
+	int m_device_type;
+#ifdef USE_OpenCV
+	cv::Mat m_mask_map;
+#endif
 	int setInv();
 	double fai(double px, double py, double theta);
 	double fai(double r, double theta);
 	double backprojectSymmetric(double r);
+
+	int readConfig(const char *path);
+	int setDeviceType(int type);
 };
 
+JudgeKB kb;
 const char *kbGetVersion()
 {
-	return "V0.0.1-20200224133247";
+	return "V0.0.2-20200226111244";
 }
 
-KB_STATUS testKB(JudgeKB kb)
+int kbSetThetaRadius(double radius)
+{
+	return 0;
+}
+
+KB_STATUS testKB()
 {
 	try
 	{
@@ -86,22 +106,25 @@ KB_STATUS kbTestParameters(int image_width,
 						   double u0,
 						   double v0)
 {
-	JudgeKB kb;
 	if (kb.setParameters(image_width, image_height,
 						 k2, k3, k4, k5,
 						 mu, mv, u0, v0) == 0)
 	{
-		return testKB(kb);
+		return testKB();
 	}
 	return KB_ER;
 }
 
-KB_STATUS kbTestFile(char *file_path)
+KB_STATUS kbTestFile(const char *file_path)
 {
-	JudgeKB kb;
 	if (kb.setParameters(file_path) == 0)
 	{
-		return testKB(kb);
+		return testKB();
 	}
 	return KB_ER;
+}
+
+int kbGetThetaMap(const char *save_path)
+{
+	return kb.saveMaskMap(save_path);
 }

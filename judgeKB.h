@@ -15,7 +15,16 @@ extern "C"
     };
 
     const char *kbGetVersion();
-    
+
+    /*
+    radius is differece and dynamic:
+        cvmodule: 350
+        cv2: 350
+        G2: 300
+        newG2: 320
+    */
+    int kbSetThetaRadius(double radius);
+
     KB_STATUS kbTestParameters(int image_width,
                                int image_height,
                                double k2,
@@ -26,6 +35,8 @@ extern "C"
                                double mv,
                                double u0,
                                double v0);
-                               
-    KB_STATUS kbTestFile(char *file_path);//file_path is yaml file with stARKit format
+
+    KB_STATUS kbTestFile(const char *yaml_file); //yaml_file is yaml file with stARKit format
+
+    int kbGetThetaMap(const char* save_path);// a png image saved with radius
 }

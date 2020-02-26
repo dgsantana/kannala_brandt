@@ -3,11 +3,17 @@
 
 int main(int argc, char **argv)
 {
-	char *path = argv[1];
+	char *param_file = argv[1];
 
-	// std::cout<<kbGetVersion()<<std::endl;
+	std::cout << kbGetVersion() << std::endl;
 
-	switch (kbTestFile(path))
+	if (kbSetThetaRadius(300) < 0)
+	{
+		std::cout << "radius error\n";
+		return 0;
+	}
+
+	switch (kbTestFile(param_file))
 	{
 	case KB_ER:
 		std::cout << "unknow error\n";
@@ -27,6 +33,10 @@ int main(int argc, char **argv)
 	default:
 		break;
 	}
-
+	
+	if (kbGetThetaMap("./") < 0)
+	{
+		std::cout << "can not get map\n";
+	}
 	return 0;
 }

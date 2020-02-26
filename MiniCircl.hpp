@@ -119,7 +119,7 @@ public:
         }
         set_cnt = point.size();
     }
-    int getRedius(double &_radius)
+    int getRadius(double &_radius)
     {
         int re = mindisk();
         _radius = radius;
