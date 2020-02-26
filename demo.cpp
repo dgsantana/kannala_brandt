@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 	default:
 		break;
 	}
-	
+
 	if (kbGetThetaMap("./") < 0)
 	{
 		std::cout << "can not get map\n";

@@ -234,6 +234,11 @@ int JudgeKB::setDeviceType(int type)
 
 int JudgeKB::setMaskRadius(double radius)
 {
+	if (radius<m_height/2)
+	{
+		return -1;
+	}
+	
 	m_mask_radius = radius;
 	return 0;
 }
@@ -426,6 +431,7 @@ bool JudgeKB::jdIteration()
 #ifdef USE_OpenCV
 
 	cv::Mat mask(m_height, m_width, CV_8UC1, cv::Scalar(255));
+	std::vector<cv::Point2f> ps;
 #endif
 	MiniCircl cc;
 	int count = 0;
@@ -483,17 +489,38 @@ bool JudgeKB::jdIteration()
 			{
 				count++;
 				cc.addPoint(px, i);
+#ifdef USE_OpenCV
+				ps.push_back(cv::Point2f(px, i));
+#endif
 			}
 		}
 	}
-
 #ifdef USE_OpenCV
 	// cv::imwrite("mask.png", mask);
 	m_mask_map = mask;
 #endif
-
 	if (count > 100)
 	{
+#ifdef USE_OpenCV
+		cv::Point2f center;
+		float Rf = 0;
+		cv::minEnclosingCircle(ps, center, Rf);
+		// std::cout << center << "\t" << Rf << std::endl;
+
+		m_circle_radius = Rf;
+		double x = center.x, y = center.y;
+		if (x < m_u0 * 1.5 && x > m_u0 * 0.5)
+		{
+			if (y < m_v0 * 1.5 && y > m_v0 * 0.5)
+			{
+				if (Rf < m_mask_radius)
+				{
+					return false;
+				}
+			}
+		}
+
+#else
 		double R = 0;
 		if (cc.getRadius(R) == 1 && R != -1)
 		{
@@ -511,6 +538,7 @@ bool JudgeKB::jdIteration()
 				}
 			}
 		}
+#endif
 	}
 	else
 	{

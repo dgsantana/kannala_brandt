@@ -68,7 +68,7 @@ const char *kbGetVersion()
 
 int kbSetThetaRadius(double radius)
 {
-	return 0;
+	return kb.setMaskRadius(radius);
 }
 
 KB_STATUS testKB()
